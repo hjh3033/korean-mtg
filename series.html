@@ -42,6 +42,8 @@ tr:last-child td{border-bottom:0}
 .cta{display:block;background:var(--acc);color:#fff;text-align:center;padding:14px 18px;border-radius:12px;font-weight:600;margin:28px 0}
 .cta:hover{text-decoration:none;opacity:.92}
 ul,ol{padding-left:22px}li{margin-bottom:6px}
+.stats{display:none;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:rgba(52,199,89,.12);color:#1F7A35;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;margin:-14px 0 22px}
+.stats::before{content:"";width:7px;height:7px;border-radius:4px;background:#34C759}
 .foot{margin-top:48px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--mut)}
 .ko{font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif}
 .ep{display:block;background:var(--card);border-radius:14px;padding:16px 18px;margin:12px 0;color:inherit;border:1px solid var(--line)}
@@ -86,7 +88,7 @@ ul,ol{padding-left:22px}li{margin-bottom:6px}
 }
 </style>
 </head>
-<body>
+<body data-page="series">
 <div class="layout">
 <aside class="tree"><div class="hd"><a href="./"><img src="logo_mark.png" alt=""></a><b data-i="_t_site">Site map</b></div><ul>
 <li><a href="./" data-i="_t_shop">Collection & sale (photos, prices)</a></li>
@@ -119,6 +121,7 @@ ul,ol{padding-left:22px}li{margin-bottom:6px}
 </div>
 <h1 data-i="h1">Magic in Korea, 1995–1998</h1>
 <div data-i="meta" class="meta">A series by Jeff Hyun · new parts added as they are written</div>
+<div id="stats" class="stats"></div>
 <p data-i="intro">The <a href="guide.html" data-keeplang>collector's guide</a> covers the facts: which sets, which borders, how to tell. This series is for everything that doesn't fit in a table — what it was actually like to play Magic in Busan in the late 1990s, where the Korean-language cards came from, and why so few of them made it out. Parts are short and will be added one at a time.</p>
 <h2 data-i="list">Parts</h2>
 <a class="ep" href="series/01-busan-1990s.html" data-keeplang>
@@ -147,7 +150,20 @@ ul,ol{padding-left:22px}li{margin-bottom:6px}
     try{ localStorage.setItem('kmtg_lang',l);}catch(e){}
   }
   window.setLang=apply;
-  document.addEventListener('DOMContentLoaded',function(){ apply(pick()); });
+  document.addEventListener('DOMContentLoaded',function(){ apply(pick()); loadStats(); });
+  // ---- visitor counter (same Abacus namespace as the shop) ----
+  var CNT='https://abacus.jasoncameron.dev', CNS='hjh3033-korean-mtg', PK=document.body.getAttribute('data-page')||'page';
+  var SL={en:['Today','Total','Visitors (site-wide)'],ko:['오늘','누적','방문자 (사이트 전체)'],ja:['今日','累計','訪問者（サイト全体）'],zh:['今日','累计','访客（全站）']};
+  var ST=null;
+  function kstDay(){ var d=new Date(Date.now()+9*3600e3); return d.toISOString().slice(0,10).replace(/-/g,''); }
+  function call(op,key){ return fetch(CNT+'/'+op+'/'+CNS+'/'+key).then(function(r){ return r.ok?r.json():(r.status===404?{value:0}:null); }).then(function(j){ return j?j.value:null; }).catch(function(){ return null; }); }
+  function renderStats(){ var el=document.getElementById('stats'); if(!el||!ST) return; var l=document.documentElement.lang.slice(0,2); var L=SL[l]||SL.en; var parts=[];
+    if(ST.today!=null) parts.push(L[0]+' '+ST.today.toLocaleString()); if(ST.total!=null) parts.push(L[1]+' '+ST.total.toLocaleString()); if(ST.people!=null) parts.push(L[2]+' '+ST.people.toLocaleString());
+    el.textContent=parts.join(' · '); el.style.display=parts.length?'inline-flex':'none'; }
+  function loadStats(){ var isNew=false; try{ isNew=!localStorage.getItem('mtg-vid'); if(isNew) localStorage.setItem('mtg-vid',String(Date.now())); }catch(e){}
+    var hit = location.protocol!=='file:';
+    Promise.all([call(hit?'hit':'get',PK+'-views'), call(hit?'hit':'get',PK+'-day-'+kstDay()), call(hit&&isNew?'hit':'get','visitors')]).then(function(v){ ST={total:v[0],today:v[1],people:v[2]}; renderStats(); }); }
+  var _apply=apply; apply=function(l){ _apply(l); renderStats(); }; window.setLang=apply;
 })();
 </script>
 </body>
