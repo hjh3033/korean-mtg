@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://hjh3033.github.io/korean-mtg/sitemap.xml
